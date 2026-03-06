@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #login, #chat-container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 600px;
+    }
+    #chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 80vh;
+    }
+    #users-list {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    #users {
+      list-style: none;
+      padding: 0;
+    }
+    #users li {
+      padding: 5px;
+      cursor: pointer;
+    }
+    #users li:hover {
+      background-color: #f9f9f9;
+    }
+    #chat {
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+    #typing-indicator {
+      font-style: italic;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    #message-form {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    #message-input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #options {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    #clear-btn, #clear-chat-btn {
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="login" style="display: block;">
+    <h3>Enter Username</h3>
+    <input type="text" id="username-input" placeholder="Enter your username..." required>
+    <button id="join-btn">Join Chat</button>
+  </div>
+  <div id="chat-container" style="display: none;">
+    <div id="options" style="display: none; margin-bottom: 10px;">
+      <button id="clear-btn">Clear Users</button>
+      <button id="clear-chat-btn">Clear Chat</button>
+    </div>
+    <div id="users-list">
+      <h3>Online Users</h3>
+      <ul id="users"></ul>
+    </div>
+    <div id="chat"></div>
+    <div id="typing-indicator"></div>
+    <form id="message-form">
+      <input type="text" id="message-input" placeholder="Type your message here..." required>
+      <button type="submit">Send</button>
+    </form>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const loginDiv = document.getElementById("login");
+    const chatContainer = document.getElementById("chat-container");
+    const usernameInput = document.getElementById("username-input");
+    const joinBtn = document.getElementById("join-btn");
+    const chat = document.getElementById("chat");
+    const usersList = document.getElementById("users");
+    const messageForm = document.getElementById("message-form");
+    const messageInput = document.getElementById("message-input");
+    const typingIndicator = document.getElementById("typing-indicator");
+    let isFounder = false;
+    let currentUsers = [];
+    let typingTimeout;
+
+    joinBtn.addEventListener("click", () => {
+      const username = usernameInput.value.trim();
+      if (username) {
+        socket.emit("join", username);
+        loginDiv.style.display = "none";
+        chatContainer.style.display = "block";
+      } else {
+        alert("Please enter a username");
+      }
+    });
+
+    socket.on("userJoined", (user) => {
+      addMessage(`${user} joined the chat`, null, null, false);
+    });
+
+    socket.on("message", (message) => {
+      addMessage(message, null, null, false);
+    });
+    socket.on("userLeft", (user) => {
+      addMessage(`${user} left the chat`, null, null, false);
+    });
+    socket.on("userList", (userList) => {
+      currentUsers = userList;
+      updateUserList();
+    });
+    
+    socket.on("ChatMessage", (message) => {
+      addMessage(message.text, message.id, message.userName, message.userName === usernameInput.value.trim());
+    });
+
+    socket.on("messagesUpdate", (msgs) => {
+      chat.innerHTML = '';
+      msgs.forEach(m => addMessage(m.text, m.id, m.userName, m.userName === usernameInput.value.trim()));
+    });
+
+    socket.on('isFounder', (founderStatus) => {
+      isFounder = founderStatus;
+      document.getElementById("options").style.display = isFounder ? 'block' : 'none';
+      updateUserList();
+    });
+
+    socket.on('typingUsers', (users) => {
+      const filtered = users.filter(u => u !== usernameInput.value.trim());
+      if (filtered.length > 0) {
+        typingIndicator.textContent = filtered.join(', ') + ' is typing...';
+      } else {
+        typingIndicator.textContent = '';
+      }
+    });
+
+    socket.on("clearMessages", () => {
+      chat.innerHTML = '';
+    });
+
+    socket.on("clearMessages", () => {
+      chat.innerHTML = '';
+    });
+    
+   
+    messageForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const message = messageInput.value.trim();
+      if (message) {
+        socket.emit("ChatMessage", message);
+        socket.emit('stopTyping');
+        messageInput.value = "";
+      }
+    });
+
+    messageInput.addEventListener('input', () => {
+      socket.emit('typing');
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        socket.emit('stopTyping');
+      }, 1000);
+    });
+
+    document.getElementById("clear-btn").addEventListener("click", () => {
+      socket.emit('clearUsers');
+    });
+
+    document.getElementById("clear-chat-btn").addEventListener("click", () => {
+      socket.emit('clearMessages');
+    });
+
+    function updateUserList() {
+      usersList.innerHTML = currentUsers.map(user => isFounder ? `<li onclick="kickUser('${user}')">${user}</li>` : `<li>${user}</li>`).join('');
+    }
+
+    function addMessage(text, id, userName, isOwn) {
+      const messageElement = document.createElement("div");
+      if (userName) {
+        if (isOwn) {
+          messageElement.textContent = `You: ${text}`;
+        } else {
+          messageElement.textContent = `${userName}: ${text}`;
+        }
+        if (isOwn && id) {
+          const deleteBtn = document.createElement("button");
+          deleteBtn.textContent = "Delete";
+          deleteBtn.onclick = () => socket.emit('deleteMessage', id);
+          messageElement.appendChild(deleteBtn);
+        }
+      } else {
+        messageElement.textContent = text;
+      }
+      chat.appendChild(messageElement);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function kickUser(username) {
+      socket.emit('kickUser', username);
+    }
+  </script>
+</body>
+
+</html>
