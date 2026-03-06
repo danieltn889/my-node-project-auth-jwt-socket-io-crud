@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 
-const socket = io();
+const socket = io(import.meta.env.DEV ? undefined : import.meta.env.VITE_API_BASE_URL);
 
 const Chat = () => {
   const navigate = useNavigate();

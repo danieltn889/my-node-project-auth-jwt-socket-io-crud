@@ -1,8 +1,15 @@
 const express = require('express');
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// CORS configuration
+app.use(cors({
+  origin: true, // Allow all origins for development; in production, specify allowed origins
+  credentials: true
+}));
 
 // Import routes
 const bookRoutes = require('./routes/book-routes');
@@ -19,7 +26,12 @@ const connectDB = require('./database/db');
 const http=require('http');
 const server=http.createServer(app);
 const socketIO=require('socket.io');
-const io=socketIO(server);
+const io=socketIO(server, {
+  cors: {
+    origin: true, // Allow all origins
+    credentials: true
+  }
+});
 
 app.use(express.static('public'));
 
