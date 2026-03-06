@@ -23,25 +23,20 @@ const authorRoutes = require('./routes/author-router');
 // Import database connection
 const connectDB = require('./database/db');
 
-// Socket.IO setup (only for local development)
-let server, io;
-if (require.main === module) {
-  // Only create server and Socket.IO when running locally
-  const http = require('http');
-  server = http.createServer(app);
-  const socketIO = require('socket.io');
-  io = socketIO(server, {
-    cors: {
-      origin: true, // Allow all origins
-      credentials: true
-    }
-  });
-
-  // Socket.io
-  require('./socket')(io);
-}
+const http=require('http');
+const server=http.createServer(app);
+const socketIO=require('socket.io');
+const io=socketIO(server, {
+  cors: {
+    origin: true, // Allow all origins
+    credentials: true
+  }
+});
 
 app.use(express.static('public'));
+
+// Socket.io
+require('./socket')(io);
 
 
 // Connect database
@@ -60,14 +55,8 @@ app.use('/api/products', productRoutes);
 app.use('/api/authors', authorRoutes);
 
 // Server
-if (require.main === module) {
-  // Only start server if this file is run directly (not imported)
-  server.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     console.log(`Client available at http://localhost:${PORT}`);
     console.log(`API endpoints available at http://localhost:${PORT}/api`);
-  });
-}
-
-// Export for Vercel - export the app, not the server
-module.exports = app;
+});
