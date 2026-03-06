@@ -55,8 +55,14 @@ app.use('/api/products', productRoutes);
 app.use('/api/authors', authorRoutes);
 
 // Server
-server.listen(PORT, () => {
+if (require.main === module) {
+  // Only start server if this file is run directly (not imported)
+  server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     console.log(`Client available at http://localhost:${PORT}`);
     console.log(`API endpoints available at http://localhost:${PORT}/api`);
-});
+  });
+}
+
+// Export for Vercel
+module.exports = app;

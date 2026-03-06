@@ -836,6 +836,29 @@
       }
     }
 
+    // Populate author dropdown for other selects
+    async function populateAuthorsForSelect(selectId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/authors/stats`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">Select Author</option>';
+        
+        if (data.success && data.data) {
+          data.data.forEach(author => {
+            const option = document.createElement('option');
+            option.value = author._id;
+            option.textContent = author.name;
+            select.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load authors:', err);
+      }
+    }
+
     // Populate books dropdown
     async function populateBooks(selectId) {
       try {
