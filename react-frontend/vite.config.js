@@ -13,4 +13,7 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    allowedHosts: ['smile-chat-react-production-da1a.up.railway.app']
+  }
 })
