@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Tester · Working Edition</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    }
+    body {
+      background: linear-gradient(145deg, #e9ecef 0%, #dee2e6 100%);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .container {
+      max-width: 880px;
+      width: 100%;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(4px);
+      padding: 28px 32px;
+      border-radius: 32px;
+      box-shadow: 0 25px 45px -12px rgba(0,20,40,0.35);
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      color: #0b2b40;
+      letter-spacing: -0.02em;
+      border-left: 6px solid #2b6f9b;
+      padding-left: 20px;
+    }
+    h2 {
+      font-size: 1.4rem;
+      font-weight: 500;
+      margin: 1.8rem 0 1rem 0;
+      color: #1a4b64;
+      border-bottom: 2px solid rgba(0,110,230,0.15);
+      padding-bottom: 6px;
+    }
+    .flex-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: #fafcff;
+      border-radius: 20px;
+      padding: 20px 24px;
+      box-shadow: inset 0 1px 3px #ffffff, 0 8px 18px rgba(0,40,70,0.1);
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 12px 18px;
+      border-radius: 40px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      transition: all 0.15s ease;
+      width: 100%;
+      margin: 8px 0;
+    }
+    input:focus {
+      outline: none;
+      border-color: #1f8fcf;
+      box-shadow: 0 0 0 4px rgba(31,143,207,0.2);
+    }
+    button {
+      background-color: #1f5f8f;
+      color: white;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      width: auto;
+      min-width: 160px;
+      box-shadow: 0 8px 16px -6px #0b2b4050;
+      letter-spacing: 0.3px;
+    }
+    button:hover {
+      background-color: #12406b;
+      transform: scale(1.02);
+    }
+    button.small {
+      min-width: 110px;
+      background-color: #2e577a;
+    }
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 25px 0 15px 0;
+      align-items: center;
+    }
+    .button-group button {
+      width: auto;
+      flex: 1 0 auto;
+      background: #26648b;
+    }
+    .button-group button:nth-child(odd) {
+      background: #1d4f72;
+    }
+    #logout {
+      background-color: #a13d3d;
+    }
+    #logout:hover {
+      background-color: #732b2b;
+    }
+    .hidden {
+      display: none !important;
+    }
+    #results {
+      background: #1d2b36;
+      color: #d4e6f1;
+      padding: 20px 24px;
+      border-radius: 24px;
+      font-family: 'Fira Code', 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid #54718b;
+      box-shadow: inset 0 0 12px #00000030;
+      margin-top: 28px;
+      max-height: 380px;
+      overflow: auto;
+    }
+    .auth-forms {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+    @media (max-width:640px){
+      .auth-forms{ grid-template-columns:1fr; }
+      .container{ padding: 18px; }
+    }
+    .badge {
+      background: #e4edf5;
+      color: #0d3e5c;
+      padding: 4px 12px;
+      border-radius: 60px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-right: 8px;
+    }
+    .endpoint-hint {
+      color: #2e4f6b;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+    hr {
+      border: none;
+      height: 2px;
+      background: linear-gradient(90deg, #b3c9db, transparent);
+    }
+    .user-info {
+      background: #e3f0fa;
+      padding: 8px 16px;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      backdrop-filter: blur(2px);
+    }
+    .modal-content {
+      background-color: white;
+      margin: 10% auto;
+      padding: 24px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      animation: modalFadeIn 0.3s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 12px;
+    }
+    .modal-header h3 {
+      margin: 0;
+      color: #1a4b64;
+    }
+    .close {
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover {
+      color: #666;
+    }
+    .modal-body {
+      margin-bottom: 20px;
+    }
+    .modal-body input, .modal-body select {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .modal-footer {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+    .modal-footer button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .modal-footer .clear-btn {
+      background-color: #6c757d;
+      color: white;
+      margin-right: auto;
+    }
+    .modal-footer .cancel-btn {
+      background-color: #6c757d;
+      color: white;
+    }
+    .modal-footer .submit-btn {
+      background-color: #1f5f8f;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🔧 API TESTER · live</h1>
+  <p style="color: #2b4d6a; margin-top: -5px;"><span class="badge">✅ JWT ready</span> base: https://my-node-project-auth-jwt-socket-io.vercel.app</p>
+
+  <!-- AUTH SECTION (visible when no token) -->
+  <div id="auth-section">
+    <div class="auth-forms">
+      <!-- SIGN UP -->
+      <div class="card">
+        <h2 style="margin-top: 0;">📝 Sign Up</h2>
+        <form id="signup-form">
+          <input type="text" id="signup-username" placeholder="Username" required>
+          <input type="email" id="signup-email" placeholder="Email" required>
+          <input type="password" id="signup-password" placeholder="Password" required>
+          <button type="submit">Create account</button>
+        </form>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="card">
+        <h2 style="margin-top: 0;">🔐 Login</h2>
+        <form id="login-form">
+          <input type="email" id="login-email" placeholder="Email" required>
+          <input type="password" id="login-password" placeholder="Password" required>
+          <button type="submit">Login →</button>
+        </form>
+      </div>
+    </div>
+    <hr>
+    <div class="endpoint-hint">
+      ⚡ After login, token will be stored. Use test buttons below.
+    </div>
+  </div>
+
+  <!-- TEST SECTION (visible only when token exists) -->
+  <div id="test-section" class="hidden">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+      <h2 style="margin: 0 0 0 0;">🧪 Endpoints</h2>
+      <div id="user-info-display" class="user-info">
+        <span>👤 <span id="user-name">Loading...</span></span>
+        <span class="role-badge" id="user-role">Loading...</span>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button id="get-books" class="small">📚 GET books</button>
+      <button id="add-book" class="small">➕ POST book</button>
+      <button id="get-book-by-id" class="small">🔍 GET book by ID</button>
+      <button id="update-book" class="small">✏️ PUT book</button>
+      <button id="delete-book" class="small">🗑️ DELETE book</button>
+      <button id="get-books-by-author" class="small">👤 GET books by author</button>
+      <button id="get-products" class="small">📊 GET prod stats</button>
+      <button id="add-product" class="small">📦 INSERT samples</button>
+      <button id="update-product-categories" class="small">🏷️ UPDATE categories</button>
+      <button id="get-product-analytics" class="small">📈 GET analytics</button>
+      <button id="get-authors" class="small">✍️ GET authors</button>
+      <button id="add-author" class="small">📌 POST author</button>
+      <button id="get-images" class="small">🖼️ GET images</button>
+      <button id="upload-image" class="small">⬆️ UPLOAD image</button>
+      <button id="delete-image" class="small">🗑️ DELETE image</button>
+      <button id="get-home" class="small">🏠 GET home</button>
+      <button id="get-admin" class="small">👑 GET admin</button>
+    </div>
+
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center; margin-top: 15px;">
+      <button id="logout" style="background:#a52222; min-width:130px;">🚪 Logout</button>
+      <span style="color:#1f5777; font-size:0.95rem;">click any button → raw response below</span>
+    </div>
+
+    <!-- results panel -->
+    <div id="results">🔎 Response will appear here</div>
+    <p style="font-size:0.85rem; color:#3e5f78; margin-top: 8px;">* image upload is a placeholder (multipart not implemented in basic tester).</p>
+  </div>
+</div>
+
+<!-- MODALS -->
+<!-- Add Book Modal -->
+<div id="addBookModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>➕ Add New Book</h3>
+      <span class="close" data-modal="addBookModal">&times;</span>
+    </div>
+    <div class="modal-body">
+      <input type="text" id="bookTitle" placeholder="Book Title" required>
+      <select id="bookAuthor">
+        <option value="">Select Author (or create new)</option>
+      </select>
+      <input type="number" id="bookYear" placeholder="Publication Year" min="1450" max="2026">
+    </div>
+    <div class="modal-footer">
+      <button class="clear-btn" data-modal="addBookModal">Clear</button>
+      <button class="cancel-btn" data-modal="addBookModal">Cancel</button>
+      <button class="submit-btn" id="submitBook">Add Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Author Modal -->
+<div id="addAuthorModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>📌 Add New Author</h3>
+      <span class="close" data-modal="addAuthorModal">&times;</span>
+    </div>
+    <div class="modal-body">
+      <input type="text" id="authorName" placeholder="Author Name" required>
+      <input type="text" id="authorBio" placeholder="Bio (optional)">
+      <input type="date" id="authorBirthDate" placeholder="Birth Date">
+    </div>
+    <div class="modal-footer">
+      <button class="clear-btn" data-modal="addAuthorModal">Clear</button>
+      <button class="cancel-btn" data-modal="addAuthorModal">Cancel</button>
+      <button class="submit-btn" id="submitAuthor">Add Author</button>
+    </div>
+  </div>
+</div>
+
+<!-- Get Book by ID Modal -->
+<div id="getBookByIdModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>🔍 Get Book by ID</h3>
+      <span class="close" data-modal="getBookByIdModal">&times;</span>
+    </div>
+    <div class="modal-body">
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">Select Book:</label>
+      <select id="bookSelect" style="margin-bottom: 12px;">
+        <option value="">Loading books...</option>
+      </select>
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">Or enter Book ID manually:</label>
+      <input type="text" id="bookId" placeholder="Book ID" required>
+    </div>
+    <div class="modal-footer">
+      <button class="clear-btn" data-modal="getBookByIdModal">Clear</button>
+      <button class="cancel-btn" data-modal="getBookByIdModal">Cancel</button>
+      <button class="submit-btn" id="submitGetBookById">Get Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- Update Book Modal -->
+<div id="updateBookModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>✏️ Update Book</h3>
+      <span class="close" data-modal="updateBookModal">&times;</span>
+    </div>
+    <div class="modal-body">
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">Select Book to Update:</label>
+      <select id="updateBookSelect" style="margin-bottom: 12px;">
+        <option value="">Loading books...</option>
+      </select>
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">Or enter Book ID manually:</label>
+      <input type="text" id="updateBookId" placeholder="Book ID" required>
+      <input type="text" id="updateBookTitle" placeholder="New Title">
+      <select id="updateBookAuthor">
+        <option value="">Select New Author (optional)</option>
+      </select>
+      <input type="number" id="updateBookYear" placeholder="New Publication Year">
+    </div>
+    <div class="modal-footer">
+      <button class="clear-btn" data-modal="updateBookModal">Clear</button>
+      <button class="cancel-btn" data-modal="updateBookModal">Cancel</button>
+      <button class="submit-btn" id="submitUpdateBook">Update Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Book Modal -->
+<div id="deleteBookModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>🗑️ Delete Book</h3>
+      <span class="close" data-modal="deleteBookModal">&times;</span>
+    </div>
+    <div class="modal-body">
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">Select Book to Delete:</label>
+      <select id="deleteBookSelect" style="margin-bottom: 12px;">
+        <option value="">Loading books...</option>
+      </select>
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">Or enter Book ID manually:</label>
+      <input type="text" id="deleteBookId" placeholder="Book ID to Delete" required>
+      <p style="color: #d9534f; font-size: 0.9rem;">⚠️ This action cannot be undone!</p>
+    </div>
+    <div class="modal-footer">
+      <button class="clear-btn" data-modal="deleteBookModal">Clear</button>
+      <button class="cancel-btn" data-modal="deleteBookModal">Cancel</button>
+      <button class="submit-btn" id="submitDeleteBook" style="background-color: #d9534f;">Delete Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- Get Books by Author Modal -->
+<div id="getBooksByAuthorModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>👤 Get Books by Author</h3>
+      <span class="close" data-modal="getBooksByAuthorModal">&times;</span>
+    </div>
+    <div class="modal-body">
+      <select id="authorSelect">
+        <option value="">Select Author</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="clear-btn" data-modal="getBooksByAuthorModal">Clear</button>
+      <button class="cancel-btn" data-modal="getBooksByAuthorModal">Cancel</button>
+      <button class="submit-btn" id="submitGetBooksByAuthor">Get Books</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Image Modal -->
+<div id="deleteImageModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>🗑️ Delete Image</h3>
+      <span class="close" data-modal="deleteImageModal">&times;</span>
+    </div>
+    <div class="modal-body">
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">Select Image to Delete:</label>
+      <select id="deleteImageSelect" style="margin-bottom: 12px;">
+        <option value="">Loading images...</option>
+      </select>
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">Or enter Image ID manually:</label>
+      <input type="text" id="deleteImageId" placeholder="Image ID to Delete" required>
+      <p style="color: #d9534f; font-size: 0.9rem;">⚠️ This action cannot be undone!</p>
+    </div>
+    <div class="modal-footer">
+      <button class="clear-btn" data-modal="deleteImageModal">Clear</button>
+      <button class="cancel-btn" data-modal="deleteImageModal">Cancel</button>
+      <button class="submit-btn" id="submitDeleteImage" style="background-color: #d9534f;">Delete Image</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Image Modal -->
+<div id="uploadImageModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>⬆️ Upload Image</h3>
+      <span class="close" data-modal="uploadImageModal">&times;</span>
+    </div>
+    <div class="modal-body">
+      <input type="file" id="image-file" accept="image/*" required>
+      <p style="color: #666; font-size: 0.9rem; margin-top: 8px;">Select an image file to upload (JPG, PNG, GIF, etc.)</p>
+    </div>
+    <div class="modal-footer">
+      <button class="cancel-btn" data-modal="uploadImageModal">Cancel</button>
+      <button class="submit-btn" id="submitUploadImage">Upload Image</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // --- configuration ---
+    const API_BASE = 'https://my-node-project-auth-jwt-socket-io.vercel.app';
+    
+    // token management
+    let token = localStorage.getItem('token') || null;
+    let userData = null;
+
+    // DOM elements
+    const authSection = document.getElementById('auth-section');
+    const testSection = document.getElementById('test-section');
+    const resultsDiv = document.getElementById('results');
+    const userNameSpan = document.getElementById('user-name');
+    const userRoleSpan = document.getElementById('user-role');
+
+    // helper to update UI based on token
+    function updateUIBasedOnToken() {
+      if (token) {
+        authSection.classList.add('hidden');
+        testSection.classList.remove('hidden');
+        // Load user data from localStorage if available
+        const savedUser = localStorage.getItem('userData');
+        if (savedUser) {
+          try {
+            userData = JSON.parse(savedUser);
+            updateUserDisplay();
+          } catch (e) {
+            console.error('Failed to parse user data', e);
+          }
+        }
+      } else {
+        authSection.classList.remove('hidden');
+        testSection.classList.add('hidden');
+        resultsDiv.textContent = '🔎 Response will appear here';
+        localStorage.removeItem('userData');
+      }
+    }
+
+    function updateUserDisplay() {
+      if (userData) {
+        userNameSpan.textContent = userData.username || userData.email || 'User';
+        userRoleSpan.textContent = userData.role || 'user';
+      } else {
+        userNameSpan.textContent = 'User';
+        userRoleSpan.textContent = 'unknown';
+      }
+    }
+
+    // initial call
+    updateUIBasedOnToken();
+
+    // ---------- safe fetch with error & token handling ----------
+    async function authorizedFetch(endpoint, options = {}) {
+      if (!token) {
+        resultsDiv.textContent = '❌ No token — please log in first.';
+        throw new Error('No token');
+      }
+
+      const defaultHeaders = {
+        'Authorization': `Bearer ${token}`,
+        ...(options.body && !(options.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {})
+      };
+
+      // if body is object and not formdata, stringify
+      let body = options.body;
+      if (body && typeof body === 'object' && !(body instanceof FormData) && !(options.body instanceof FormData)) {
+        body = JSON.stringify(body);
+        // ensure content-type is set
+        defaultHeaders['Content-Type'] = 'application/json';
+      }
+
+      const config = {
+        method: options.method || 'GET',
+        headers: { ...defaultHeaders, ...options.headers },
+        body: body
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}${endpoint}`, config);
+
+        // Try to parse JSON, fallback to text
+        let data;
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          data = await res.json();
+        } else {
+          data = await res.text();
+        }
+
+        // if response not ok, show error
+        if (!res.ok) {
+          const message = typeof data === 'string' ? data : (data.message || data.error || 'request failed');
+          resultsDiv.textContent = `❌ HTTP ${res.status}: ${JSON.stringify(data, null, 2)}`;
+          throw new Error(message);
+        }
+
+        // success — format nicely
+        resultsDiv.textContent = typeof data === 'string' 
+          ? data 
+          : JSON.stringify(data, null, 2);
+        
+        return data;
+      } catch (err) {
+        // if we already set resultsDiv, don't overwrite if it's a real fetch error
+        if (!err.message.includes('HTTP')) {
+          resultsDiv.textContent = `🚨 Network / parse error: ${err.message}`;
+        }
+        throw err;
+      }
+    }
+
+    // simple get
+    async function testGet(endpoint) {
+      try {
+        await authorizedFetch(endpoint);
+      } catch (e) {
+        // already displayed
+      }
+    }
+
+    // simple post with json body
+    async function testPost(endpoint, body) {
+      try {
+        await authorizedFetch(endpoint, {
+          method: 'POST',
+          body: body
+        });
+      } catch (e) {}
+    }
+
+    // simple put with json body
+    async function testPut(endpoint, body) {
+      try {
+        await authorizedFetch(endpoint, {
+          method: 'PUT',
+          body: body
+        });
+      } catch (e) {}
+    }
+
+    // simple delete
+    async function testDelete(endpoint) {
+      try {
+        await authorizedFetch(endpoint, {
+          method: 'DELETE'
+        });
+      } catch (e) {}
+    }
+
+    // --- event listeners ---
+
+    // SIGN UP
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('signup-username').value;
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password })
+        });
+        const data = await res.json();
+        resultsDiv.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        resultsDiv.textContent = '💥 Signup error: ' + err.message;
+      }
+    });
+
+    // LOGIN - FIXED to handle your response format
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const response = await res.json();
+        
+        // Handle your specific response format
+        if (response.success === true && response.data && response.data.token) {
+          // Extract token from nested data object
+          token = response.data.token;
+          userData = response.data; // Store user data including id, username, email, role
+          
+          // Save to localStorage
+          localStorage.setItem('token', token);
+          localStorage.setItem('userData', JSON.stringify(userData));
+          
+          // Update UI
+          updateUIBasedOnToken();
+          updateUserDisplay();
+          
+          resultsDiv.textContent = '✅ Login successful!\n\n' + JSON.stringify(response, null, 2);
+        } else {
+          // Handle error case
+          resultsDiv.textContent = JSON.stringify(response, null, 2);
+        }
+      } catch (err) {
+        resultsDiv.textContent = '🚨 Login error: ' + err.message;
+      }
+    });
+
+    // --- Attach test buttons (only if they exist) ---
+    document.getElementById('get-books')?.addEventListener('click', () => testGet('/api/books/get'));
+    document.getElementById('add-book')?.addEventListener('click', () => {
+      populateAuthors();
+      openModal('addBookModal');
+    });
+    document.getElementById('get-book-by-id')?.addEventListener('click', () => {
+      populateBooks('bookSelect');
+      openModal('getBookByIdModal');
+    });
+    document.getElementById('update-book')?.addEventListener('click', () => {
+      populateBooks('updateBookSelect');
+      populateAuthors();
+      openModal('updateBookModal');
+    });
+    document.getElementById('delete-book')?.addEventListener('click', () => {
+      populateBooks('deleteBookSelect');
+      openModal('deleteBookModal');
+    });
+    document.getElementById('get-books-by-author')?.addEventListener('click', () => {
+      populateAuthorsForSelect('authorSelect');
+      openModal('getBooksByAuthorModal');
+    });
+    document.getElementById('get-products')?.addEventListener('click', () => testGet('/api/products/stats'));
+    document.getElementById('add-product')?.addEventListener('click', () => testGet('/api/products/insert-sample-products'));
+    document.getElementById('update-product-categories')?.addEventListener('click', () => testPut('/api/products/update-categories', {}));
+    document.getElementById('get-product-analytics')?.addEventListener('click', () => testGet('/api/products/analytics'));
+    document.getElementById('get-authors')?.addEventListener('click', () => testGet('/api/authors/stats'));
+    document.getElementById('add-author')?.addEventListener('click', () => openModal('addAuthorModal'));
+    document.getElementById('get-images')?.addEventListener('click', () => testGet('/api/images/get'));
+    document.getElementById('upload-image')?.addEventListener('click', () => {
+      if (!token) {
+        resultsDiv.textContent = '❌ No token, login first.';
+        return;
+      }
+      openModal('uploadImageModal');
+    });
+    document.getElementById('delete-image')?.addEventListener('click', () => {
+      populateImages('deleteImageSelect');
+      openModal('deleteImageModal');
+    });
+    document.getElementById('get-home')?.addEventListener('click', () => testGet('/api/home'));
+    document.getElementById('get-admin')?.addEventListener('click', () => testGet('/api/admin'));
+
+    // LOGOUT
+    document.getElementById('logout').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('userData');
+      token = null;
+      userData = null;
+      updateUIBasedOnToken();
+      resultsDiv.textContent = '👋 Logged out, token cleared.';
+    });
+
+    // --- modal management ---
+    function openModal(modalId) {
+      document.getElementById(modalId).style.display = 'block';
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    // Close modal when clicking outside or on close button
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal')) {
+        e.target.style.display = 'none';
+      }
+      if (e.target.classList.contains('close') || e.target.classList.contains('cancel-btn')) {
+        const modalId = e.target.getAttribute('data-modal');
+        closeModal(modalId);
+      }
+    });
+
+    // Clear button handlers
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('clear-btn')) {
+        const modalId = e.target.getAttribute('data-modal');
+        clearModalFields(modalId);
+      }
+    });
+
+    function clearModalFields(modalId) {
+      const modal = document.getElementById(modalId);
+      const inputs = modal.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => {
+        if (input.type === 'date') {
+          input.value = '';
+        } else {
+          input.value = '';
+        }
+      });
+    }
+
+    // Populate author dropdown
+    async function populateAuthors() {
+      try {
+        const res = await fetch(`${API_BASE}/api/authors/stats`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const select = document.getElementById('bookAuthor');
+        select.innerHTML = '<option value="">Select Author (or create new)</option>';
+        
+        if (data.success && data.data) {
+          data.data.forEach(author => {
+            const option = document.createElement('option');
+            option.value = author._id;
+            option.textContent = author.name;
+            select.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load authors:', err);
+      }
+    }
+
+    // Populate author dropdown for other selects
+    async function populateAuthorsForSelect(selectId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/authors/stats`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">Select Author</option>';
+        
+        if (data.success && data.data) {
+          data.data.forEach(author => {
+            const option = document.createElement('option');
+            option.value = author._id;
+            option.textContent = author.name;
+            select.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load authors:', err);
+      }
+    }
+
+    // Populate books dropdown
+    async function populateBooks(selectId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/books/get`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">Select Book</option>';
+        
+        if (data.success && data.data) {
+          data.data.forEach(book => {
+            const option = document.createElement('option');
+            option.value = book._id;
+            option.textContent = `${book.title} (${book.year || 'No year'})`;
+            select.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load books:', err);
+      }
+    }
+
+    // Populate images dropdown
+    async function populateImages(selectId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/images/get`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">Select Image</option>';
+        
+        if (data.success && data.data) {
+          data.data.forEach(image => {
+            const option = document.createElement('option');
+            option.value = image._id;
+            option.textContent = `Image ${image._id.slice(-6)} (${new Date(image.createdAt).toLocaleDateString()})`;
+            select.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load images:', err);
+      }
+    }
+
+    // --- modal submit handlers ---
+    document.getElementById('submitBook')?.addEventListener('click', async () => {
+      const title = document.getElementById('bookTitle').value.trim();
+      const authorId = document.getElementById('bookAuthor').value;
+      const year = document.getElementById('bookYear').value;
+
+      if (!title) {
+        alert('Please enter a book title');
+        return;
+      }
+
+      if (!authorId) {
+        alert('Please select an author');
+        return;
+      }
+
+      const bookData = { title, author: authorId };
+      if (year) bookData.year = parseInt(year);
+
+      try {
+        const res = await fetch(`${API_BASE}/api/books/add`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(bookData)
+        });
+        const data = await res.json();
+        resultsDiv.textContent = JSON.stringify(data, null, 2);
+        closeModal('addBookModal');
+        
+        // Clear form
+        document.getElementById('bookTitle').value = '';
+        document.getElementById('bookAuthor').value = '';
+        document.getElementById('bookYear').value = '';
+      } catch (err) {
+        resultsDiv.textContent = 'Error adding book: ' + err.message;
+      }
+    });
+
+    document.getElementById('submitAuthor')?.addEventListener('click', async () => {
+      const name = document.getElementById('authorName').value.trim();
+      const bio = document.getElementById('authorBio').value.trim();
+      const birthDate = document.getElementById('authorBirthDate').value;
+
+      if (!name) {
+        alert('Please enter an author name');
+        return;
+      }
+
+      const authorData = { name };
+      if (bio) authorData.bio = bio;
+      if (birthDate) authorData.birthDate = birthDate;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/books/author`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(authorData)
+        });
+        const data = await res.json();
+        resultsDiv.textContent = JSON.stringify(data, null, 2);
+        closeModal('addAuthorModal');
+        
+        // Clear form
+        document.getElementById('authorName').value = '';
+        document.getElementById('authorBio').value = '';
+        document.getElementById('authorBirthDate').value = '';
+      } catch (err) {
+        resultsDiv.textContent = 'Error adding author: ' + err.message;
+      }
+    });
+
+    // --- additional modal submit handlers ---
+    document.getElementById('submitGetBookById')?.addEventListener('click', async () => {
+      const selectedBookId = document.getElementById('bookSelect').value;
+      const manualBookId = document.getElementById('bookId').value.trim();
+      const bookId = selectedBookId || manualBookId;
+      
+      if (!bookId) {
+        alert('Please select a book or enter a book ID');
+        return;
+      }
+      try {
+        await testGet(`/api/books/get/${bookId}`);
+        closeModal('getBookByIdModal');
+        document.getElementById('bookSelect').value = '';
+        document.getElementById('bookId').value = '';
+      } catch (err) {
+        resultsDiv.textContent = 'Error getting book: ' + err.message;
+      }
+    });
+
+    document.getElementById('submitUpdateBook')?.addEventListener('click', async () => {
+      const selectedBookId = document.getElementById('updateBookSelect').value;
+      const manualBookId = document.getElementById('updateBookId').value.trim();
+      const bookId = selectedBookId || manualBookId;
+      const title = document.getElementById('updateBookTitle').value.trim();
+      const authorId = document.getElementById('updateBookAuthor').value;
+      const year = document.getElementById('updateBookYear').value;
+
+      if (!bookId) {
+        alert('Please select a book or enter a book ID');
+        return;
+      }
+
+      const updateData = {};
+      if (title) updateData.title = title;
+      if (authorId) updateData.author = authorId;
+      if (year) updateData.year = parseInt(year);
+
+      if (Object.keys(updateData).length === 0) {
+        alert('Please enter at least one field to update');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/books/update/${bookId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(updateData)
+        });
+        const data = await res.json();
+        resultsDiv.textContent = JSON.stringify(data, null, 2);
+        closeModal('updateBookModal');
+        
+        // Clear form
+        document.getElementById('updateBookSelect').value = '';
+        document.getElementById('updateBookId').value = '';
+        document.getElementById('updateBookTitle').value = '';
+        document.getElementById('updateBookAuthor').value = '';
+        document.getElementById('updateBookYear').value = '';
+      } catch (err) {
+        resultsDiv.textContent = 'Error updating book: ' + err.message;
+      }
+    });
+
+    document.getElementById('submitDeleteBook')?.addEventListener('click', async () => {
+      const selectedBookId = document.getElementById('deleteBookSelect').value;
+      const manualBookId = document.getElementById('deleteBookId').value.trim();
+      const bookId = selectedBookId || manualBookId;
+      
+      if (!bookId) {
+        alert('Please select a book or enter a book ID');
+        return;
+      }
+      if (!confirm('Are you sure you want to delete this book?')) return;
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/books/delete/${bookId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        resultsDiv.textContent = JSON.stringify(data, null, 2);
+        closeModal('deleteBookModal');
+        document.getElementById('deleteBookSelect').value = '';
+        document.getElementById('deleteBookId').value = '';
+      } catch (err) {
+        resultsDiv.textContent = 'Error deleting book: ' + err.message;
+      }
+    });
+
+    document.getElementById('submitGetBooksByAuthor')?.addEventListener('click', async () => {
+      const authorId = document.getElementById('authorSelect').value;
+      if (!authorId) {
+        alert('Please select an author');
+        return;
+      }
+      try {
+        await testGet(`/api/books/author/${authorId}`);
+        closeModal('getBooksByAuthorModal');
+      } catch (err) {
+        resultsDiv.textContent = 'Error getting books by author: ' + err.message;
+      }
+    });
+
+    document.getElementById('submitDeleteImage')?.addEventListener('click', async () => {
+      const selectedImageId = document.getElementById('deleteImageSelect').value;
+      const manualImageId = document.getElementById('deleteImageId').value.trim();
+      const imageId = selectedImageId || manualImageId;
+      
+      if (!imageId) {
+        alert('Please select an image or enter an image ID');
+        return;
+      }
+      if (!confirm('Are you sure you want to delete this image?')) return;
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/images/delete/${imageId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        resultsDiv.textContent = JSON.stringify(data, null, 2);
+        closeModal('deleteImageModal');
+        document.getElementById('deleteImageSelect').value = '';
+        document.getElementById('deleteImageId').value = '';
+      } catch (err) {
+        resultsDiv.textContent = 'Error deleting image: ' + err.message;
+      }
+    });
+
+    document.getElementById('submitUploadImage')?.addEventListener('click', async () => {
+      const fileInput = document.getElementById('image-file');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        resultsDiv.textContent = '❌ Please select an image file first.';
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const res = await fetch(`${API_BASE}/api/images/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          resultsDiv.textContent = `✅ Image uploaded successfully!\n\nURL: ${data.image.url}\nID: ${data.image._id}`;
+          closeModal('uploadImageModal');
+          fileInput.value = ''; // Clear the file input
+        } else {
+          resultsDiv.textContent = `❌ Upload failed: ${data.message}`;
+        }
+      } catch (error) {
+        // Try to get the response text to see what the server actually returned
+        try {
+          const responseText = await res.text();
+          resultsDiv.textContent = `❌ Upload error: ${error.message}\n\nServer response: ${responseText.substring(0, 200)}...`;
+        } catch (textError) {
+          resultsDiv.textContent = `❌ Upload error: ${error.message}`;
+        }
+      }
+    });
+
+    // if token exists on load, show a friendly message
+    if (token) {
+      resultsDiv.textContent = '✅ Token found. Click any endpoint button to test.';
+      // Load user data if exists
+      const savedUser = localStorage.getItem('userData');
+      if (savedUser) {
+        try {
+          userData = JSON.parse(savedUser);
+          updateUserDisplay();
+        } catch (e) {}
+      }
+    }
+  })();
+</script>
+
+<!-- minor fix: ensure hidden class toggles properly -->
+<style>
+  .hidden { display: none !important; }
+</style>
+</body>
+</html>
