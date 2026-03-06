@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "my-node-project",
+  "name": "my-node-project-auth-jwt-socket-io-crud",
   "version": "1.0.0",
-  "description": "",
+  "description": "This project is a Node.js application that combines a real-time chat system using Socket.io with a bookstore management system. It uses MongoDB with Mongoose to perform CRUD operations for books, allowing users to add, view, update, and delete books while also communicating through live chat.",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

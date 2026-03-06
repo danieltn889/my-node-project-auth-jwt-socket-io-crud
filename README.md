@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a full-stack real-time chat application built with Node.js, Express, Socket.io, MongoDB, and React. It features user authentication with JWT, real-time messaging (group and private), message management (edit, delete, reply), admin controls, and a responsive UI.
+This project is a Node.js application that combines a real-time chat system using Socket.io with a bookstore management system. It uses MongoDB with Mongoose to perform CRUD operations for books, allowing users to add, view, update, and delete books while also communicating through live chat.
 
 ## Features
 
@@ -82,21 +82,25 @@ This is a full-stack real-time chat application built with Node.js, Express, Soc
 
 3. Install frontend dependencies:
    ```bash
-   cd client
+   cd react-frontend
    npm install
    cd ..
    ```
 
 4. Set up environment variables:
-   Create a `.env` file in the root directory with:
+   Create a `.env` file in the root directory with the following variables:
    ```
    PORT=3000
    MONGODB_URI=mongodb://localhost:27017/chatapp
-   JWT_SECRET=your_jwt_secret
-   CLOUDINARY_CLOUD_NAME=your_cloud_name
-   CLOUDINARY_API_KEY=your_api_key
-   CLOUDINARY_API_SECRET=your_api_secret
+   JWT_SECRET=your_jwt_secret_here
+   CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+   CLOUDINARY_API_KEY=your_cloudinary_api_key
+   CLOUDINARY_API_SECRET=your_cloudinary_api_secret
    ```
+   - `PORT`: The port for the server (default 3000)
+   - `MONGODB_URI`: Your MongoDB connection string
+   - `JWT_SECRET`: A secret key for JWT token signing
+   - `CLOUDINARY_*`: Your Cloudinary credentials for image uploads (optional if not using image features)
 
 5. Start MongoDB (if not running):
    ```bash
@@ -110,7 +114,7 @@ This is a full-stack real-time chat application built with Node.js, Express, Soc
 
 7. Start the frontend (in a new terminal):
    ```bash
-   cd client
+   cd react-frontend
    npm run dev
    ```
 
