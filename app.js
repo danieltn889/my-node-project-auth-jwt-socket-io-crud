@@ -26,29 +26,13 @@ const connectDB = require('./database/db');
 const http=require('http');
 const server=http.createServer(app);
 const socketIO=require('socket.io');
-const io=socketIO(server, {
-  cors: {
-    origin: true, // Allow all origins
-    credentials: true
-  }
-});
+const io=socketIO(server);
 
 app.use(express.static('public'));
 
-// Conditionally initialize Socket.IO only for local development
-let io;
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-  const http = require('http');
-  const server = http.createServer(app);
-  const socketIO = require('socket.io');
-  io = socketIO(server, {
-    cors: {
-      origin: true,
-      credentials: true
-    }
-  });
-  require('./socket')(io);
-}
+// Socket.io
+require('./socket')(io);
+
 
 // Connect database
 connectDB();
@@ -65,33 +49,9 @@ app.use('/api/images', imageRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/authors', authorRoutes);
 
-// Export app for Vercel
-module.exports = app;
-
-// Start server only if not in Vercel environment
-if (require.main === module) {
-  const PORT = process.env.PORT || 3000;
-  if (io) {
-    const http = require('http');
-    const server = http.createServer(app);
-    const socketIO = require('socket.io');
-    io = socketIO(server, {
-      cors: {
-        origin: true,
-        credentials: true
-      }
-    });
-    require('./socket')(io);
-    server.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-      console.log(`Client available at http://localhost:${PORT}`);
-      console.log(`API endpoints available at http://localhost:${PORT}/api`);
-    });
-  } else {
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-      console.log(`Client available at http://localhost:${PORT}`);
-      console.log(`API endpoints available at http://localhost:${PORT}/api`);
-    });
-  }
-}
+// Server
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`Client available at http://localhost:${PORT}`);
+    console.log(`API endpoints available at http://localhost:${PORT}/api`);
+});
