@@ -26,7 +26,12 @@ const connectDB = require('./database/db');
 const http=require('http');
 const server=http.createServer(app);
 const socketIO=require('socket.io');
-const io=socketIO(server);
+const io=socketIO(server, {
+  cors: {
+    origin: true,
+    credentials: true
+  }
+});
 
 app.use(express.static('public'));
 
