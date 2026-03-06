@@ -12,6 +12,10 @@
       "dest": "/index.html"
     },
     {
+      "src": "/index.html",
+      "dest": "/index.html"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/app.js"
     },
