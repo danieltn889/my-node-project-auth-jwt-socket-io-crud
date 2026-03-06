@@ -64,5 +64,5 @@ if (require.main === module) {
   });
 }
 
-// Export for Vercel
+// Export for Vercel - export the app, not the server
 module.exports = app;
