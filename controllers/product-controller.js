@@ -188,11 +188,25 @@ const insertSampleProducts = async (req, res) => {
   ];
 
   try {
-    const result = await Product.insertMany(sampleProducts);
+    // Check for existing products to avoid duplicates
+    const existingNames = await Product.find({ name: { $in: sampleProducts.map(p => p.name) } }).select('name');
+    const existingNamesSet = new Set(existingNames.map(p => p.name));
+    
+    const newProducts = sampleProducts.filter(p => !existingNamesSet.has(p.name));
+    
+    if (newProducts.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "All sample products already exist",
+        data: []
+      });
+    }
+
+    const result = await Product.insertMany(newProducts);
 
     res.status(201).json({
       success: true,
-      message: "Sample products inserted successfully",
+      message: `${newProducts.length} sample products inserted successfully (${sampleProducts.length - newProducts.length} already existed)`,
       data: result
     });
 

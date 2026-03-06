@@ -95,6 +95,18 @@ const deleteBookById = async (req, res) => {
 
 const addNewBook = async (req, res) => {
   try {
+    const { title, author } = req.body;
+    
+    // Check for existing book with same title and author
+    const existingBook = await Book.findOne({ title, author });
+    if (existingBook) {
+      return res.status(409).json({
+        success: false,
+        message: 'Book with this title and author already exists',
+        data: existingBook
+      });
+    }
+
     const newBook = await Book.create(req.body);
     res.status(201).json({
       success: true,

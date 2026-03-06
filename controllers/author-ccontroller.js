@@ -3,7 +3,18 @@ const Author=require('../models/Author');
 const Book=require('../models/Book');
 const createAuthor=async(req,res)=>{
     try {
-        const {name,bio,birthDate}=req.body;  
+        const {name,bio,birthDate}=req.body;
+        
+        // Check for existing author with same name
+        const existingAuthor = await Author.findOne({ name });
+        if (existingAuthor) {
+            return res.status(409).json({
+                success:false,
+                message:'Author with this name already exists',
+                data:existingAuthor
+            });
+        }
+        
         const newAuthor=new Author({
             name,
             bio,

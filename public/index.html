@@ -1,249 +1,496 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat</title>
+  <title>API Tester · Working Edition</title>
   <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    }
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
+      background: linear-gradient(145deg, #e9ecef 0%, #dee2e6 100%);
       margin: 0;
-      padding: 0;
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
-      height: 100vh;
+      justify-content: center;
+      padding: 16px;
     }
-    #login, #chat-container {
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    .container {
+      max-width: 880px;
       width: 100%;
-      max-width: 600px;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(4px);
+      padding: 28px 32px;
+      border-radius: 32px;
+      box-shadow: 0 25px 45px -12px rgba(0,20,40,0.35);
+      border: 1px solid rgba(255,255,255,0.5);
     }
-    #chat-container {
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      color: #0b2b40;
+      letter-spacing: -0.02em;
+      border-left: 6px solid #2b6f9b;
+      padding-left: 20px;
+    }
+    h2 {
+      font-size: 1.4rem;
+      font-weight: 500;
+      margin: 1.8rem 0 1rem 0;
+      color: #1a4b64;
+      border-bottom: 2px solid rgba(0,110,230,0.15);
+      padding-bottom: 6px;
+    }
+    .flex-row {
       display: flex;
-      flex-direction: column;
-      height: 80vh;
+      gap: 16px;
+      flex-wrap: wrap;
     }
-    #users-list {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 10px;
-      max-height: 200px;
-      overflow-y: auto;
+    .card {
+      background: #fafcff;
+      border-radius: 20px;
+      padding: 20px 24px;
+      box-shadow: inset 0 1px 3px #ffffff, 0 8px 18px rgba(0,40,70,0.1);
     }
-    #users {
-      list-style: none;
-      padding: 0;
+    input, button {
+      font-size: 1rem;
+      padding: 12px 18px;
+      border-radius: 40px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      transition: all 0.15s ease;
+      width: 100%;
+      margin: 8px 0;
     }
-    #users li {
-      padding: 5px;
-      cursor: pointer;
-    }
-    #users li:hover {
-      background-color: #f9f9f9;
-    }
-    #chat {
-      border: 1px solid #ccc;
-      padding: 10px;
-      height: 300px;
-      overflow-y: auto;
-      margin-bottom: 10px;
-    }
-    #typing-indicator {
-      font-style: italic;
-      color: #666;
-      margin-bottom: 10px;
-    }
-    #message-form {
-      display: flex;
-      margin-bottom: 10px;
-    }
-    #message-input {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+    input:focus {
+      outline: none;
+      border-color: #1f8fcf;
+      box-shadow: 0 0 0 4px rgba(31,143,207,0.2);
     }
     button {
-      padding: 10px 15px;
-      background-color: #007bff;
+      background-color: #1f5f8f;
       color: white;
+      font-weight: 600;
       border: none;
-      border-radius: 4px;
       cursor: pointer;
-      margin-left: 5px;
+      width: auto;
+      min-width: 160px;
+      box-shadow: 0 8px 16px -6px #0b2b4050;
+      letter-spacing: 0.3px;
     }
     button:hover {
-      background-color: #0056b3;
+      background-color: #12406b;
+      transform: scale(1.02);
     }
-    #options {
+    button.small {
+      min-width: 110px;
+      background-color: #2e577a;
+    }
+    .button-group {
       display: flex;
-      justify-content: flex-end;
-      gap: 10px;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 25px 0 15px 0;
+      align-items: center;
     }
-    #clear-btn, #clear-chat-btn {
-      margin: 0;
+    .button-group button {
+      width: auto;
+      flex: 1 0 auto;
+      background: #26648b;
+    }
+    .button-group button:nth-child(odd) {
+      background: #1d4f72;
+    }
+    #logout {
+      background-color: #a13d3d;
+    }
+    #logout:hover {
+      background-color: #732b2b;
+    }
+    .hidden {
+      display: none !important;
+    }
+    #results {
+      background: #1d2b36;
+      color: #d4e6f1;
+      padding: 20px 24px;
+      border-radius: 24px;
+      font-family: 'Fira Code', 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid #54718b;
+      box-shadow: inset 0 0 12px #00000030;
+      margin-top: 28px;
+      max-height: 380px;
+      overflow: auto;
+    }
+    .auth-forms {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+    @media (max-width:640px){
+      .auth-forms{ grid-template-columns:1fr; }
+      .container{ padding: 18px; }
+    }
+    .badge {
+      background: #e4edf5;
+      color: #0d3e5c;
+      padding: 4px 12px;
+      border-radius: 60px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-right: 8px;
+    }
+    .endpoint-hint {
+      color: #2e4f6b;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+    hr {
+      border: none;
+      height: 2px;
+      background: linear-gradient(90deg, #b3c9db, transparent);
+    }
+    .user-info {
+      background: #e3f0fa;
+      padding: 8px 16px;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .role-badge {
+      background: #1f5f8f;
+      color: white;
+      padding: 2px 12px;
+      border-radius: 40px;
+      font-size: 0.8rem;
+      font-weight: 600;
     }
   </style>
 </head>
-
 <body>
-  <div id="login" style="display: block;">
-    <h3>Enter Username</h3>
-    <input type="text" id="username-input" placeholder="Enter your username..." required>
-    <button id="join-btn">Join Chat</button>
-  </div>
-  <div id="chat-container" style="display: none;">
-    <div id="options" style="display: none; margin-bottom: 10px;">
-      <button id="clear-btn">Clear Users</button>
-      <button id="clear-chat-btn">Clear Chat</button>
+<div class="container">
+  <h1>🔧 API TESTER · live</h1>
+  <p style="color: #2b4d6a; margin-top: -5px;"><span class="badge">✅ JWT ready</span> base: https://my-node-project-auth-jwt-socket-io.vercel.app</p>
+
+  <!-- AUTH SECTION (visible when no token) -->
+  <div id="auth-section">
+    <div class="auth-forms">
+      <!-- SIGN UP -->
+      <div class="card">
+        <h2 style="margin-top: 0;">📝 Sign Up</h2>
+        <form id="signup-form">
+          <input type="text" id="signup-username" placeholder="Username" required>
+          <input type="email" id="signup-email" placeholder="Email" required>
+          <input type="password" id="signup-password" placeholder="Password" required>
+          <button type="submit">Create account</button>
+        </form>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="card">
+        <h2 style="margin-top: 0;">🔐 Login</h2>
+        <form id="login-form">
+          <input type="email" id="login-email" placeholder="Email" required>
+          <input type="password" id="login-password" placeholder="Password" required>
+          <button type="submit">Login →</button>
+        </form>
+      </div>
     </div>
-    <div id="users-list">
-      <h3>Online Users</h3>
-      <ul id="users"></ul>
+    <hr>
+    <div class="endpoint-hint">
+      ⚡ After login, token will be stored. Use test buttons below.
     </div>
-    <div id="chat"></div>
-    <div id="typing-indicator"></div>
-    <form id="message-form">
-      <input type="text" id="message-input" placeholder="Type your message here..." required>
-      <button type="submit">Send</button>
-    </form>
   </div>
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
-    const loginDiv = document.getElementById("login");
-    const chatContainer = document.getElementById("chat-container");
-    const usernameInput = document.getElementById("username-input");
-    const joinBtn = document.getElementById("join-btn");
-    const chat = document.getElementById("chat");
-    const usersList = document.getElementById("users");
-    const messageForm = document.getElementById("message-form");
-    const messageInput = document.getElementById("message-input");
-    const typingIndicator = document.getElementById("typing-indicator");
-    let isFounder = false;
-    let currentUsers = [];
-    let typingTimeout;
 
-    joinBtn.addEventListener("click", () => {
-      const username = usernameInput.value.trim();
-      if (username) {
-        socket.emit("join", username);
-        loginDiv.style.display = "none";
-        chatContainer.style.display = "block";
-      } else {
-        alert("Please enter a username");
-      }
-    });
+  <!-- TEST SECTION (visible only when token exists) -->
+  <div id="test-section" class="hidden">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+      <h2 style="margin: 0 0 0 0;">🧪 Endpoints</h2>
+      <div id="user-info-display" class="user-info">
+        <span>👤 <span id="user-name">Loading...</span></span>
+        <span class="role-badge" id="user-role">Loading...</span>
+      </div>
+    </div>
 
-    socket.on("userJoined", (user) => {
-      addMessage(`${user} joined the chat`, null, null, false);
-    });
+    <div class="button-group">
+      <button id="get-books" class="small">📚 GET books</button>
+      <button id="add-book" class="small">➕ POST book</button>
+      <button id="get-products" class="small">� GET prod stats</button>
+      <button id="add-product" class="small">📦 INSERT samples</button>
+      <button id="get-authors" class="small">✍️ GET authors</button>
+      <button id="add-author" class="small">📌 POST author</button>
+      <button id="get-images" class="small">🖼️ GET images</button>
+      <button id="upload-image" class="small">⬆️ UPLOAD (sim.)</button>
+      <button id="get-home" class="small">🏠 GET home</button>
+      <button id="get-admin" class="small">👑 GET admin</button>
+    </div>
 
-    socket.on("message", (message) => {
-      addMessage(message, null, null, false);
-    });
-    socket.on("userLeft", (user) => {
-      addMessage(`${user} left the chat`, null, null, false);
-    });
-    socket.on("userList", (userList) => {
-      currentUsers = userList;
-      updateUserList();
-    });
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center; margin-top: 15px;">
+      <button id="logout" style="background:#a52222; min-width:130px;">🚪 Logout</button>
+      <span style="color:#1f5777; font-size:0.95rem;">click any button → raw response below</span>
+    </div>
+
+    <!-- results panel -->
+    <div id="results">🔎 Response will appear here</div>
+    <p style="font-size:0.85rem; color:#3e5f78; margin-top: 8px;">* image upload is a placeholder (multipart not implemented in basic tester).</p>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // --- configuration ---
+    const API_BASE = 'https://my-node-project-auth-jwt-socket-io.vercel.app';
     
-    socket.on("ChatMessage", (message) => {
-      addMessage(message.text, message.id, message.userName, message.userName === usernameInput.value.trim());
-    });
+    // token management
+    let token = localStorage.getItem('token') || null;
+    let userData = null;
 
-    socket.on("messagesUpdate", (msgs) => {
-      chat.innerHTML = '';
-      msgs.forEach(m => addMessage(m.text, m.id, m.userName, m.userName === usernameInput.value.trim()));
-    });
+    // DOM elements
+    const authSection = document.getElementById('auth-section');
+    const testSection = document.getElementById('test-section');
+    const resultsDiv = document.getElementById('results');
+    const userNameSpan = document.getElementById('user-name');
+    const userRoleSpan = document.getElementById('user-role');
 
-    socket.on('isFounder', (founderStatus) => {
-      isFounder = founderStatus;
-      document.getElementById("options").style.display = isFounder ? 'block' : 'none';
-      updateUserList();
-    });
-
-    socket.on('typingUsers', (users) => {
-      const filtered = users.filter(u => u !== usernameInput.value.trim());
-      if (filtered.length > 0) {
-        typingIndicator.textContent = filtered.join(', ') + ' is typing...';
+    // helper to update UI based on token
+    function updateUIBasedOnToken() {
+      if (token) {
+        authSection.classList.add('hidden');
+        testSection.classList.remove('hidden');
+        // Load user data from localStorage if available
+        const savedUser = localStorage.getItem('userData');
+        if (savedUser) {
+          try {
+            userData = JSON.parse(savedUser);
+            updateUserDisplay();
+          } catch (e) {
+            console.error('Failed to parse user data', e);
+          }
+        }
       } else {
-        typingIndicator.textContent = '';
+        authSection.classList.remove('hidden');
+        testSection.classList.add('hidden');
+        resultsDiv.textContent = '🔎 Response will appear here';
+        localStorage.removeItem('userData');
       }
-    });
-
-    socket.on("clearMessages", () => {
-      chat.innerHTML = '';
-    });
-
-    socket.on("clearMessages", () => {
-      chat.innerHTML = '';
-    });
-    
-   
-    messageForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const message = messageInput.value.trim();
-      if (message) {
-        socket.emit("ChatMessage", message);
-        socket.emit('stopTyping');
-        messageInput.value = "";
-      }
-    });
-
-    messageInput.addEventListener('input', () => {
-      socket.emit('typing');
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => {
-        socket.emit('stopTyping');
-      }, 1000);
-    });
-
-    document.getElementById("clear-btn").addEventListener("click", () => {
-      socket.emit('clearUsers');
-    });
-
-    document.getElementById("clear-chat-btn").addEventListener("click", () => {
-      socket.emit('clearMessages');
-    });
-
-    function updateUserList() {
-      usersList.innerHTML = currentUsers.map(user => isFounder ? `<li onclick="kickUser('${user}')">${user}</li>` : `<li>${user}</li>`).join('');
     }
 
-    function addMessage(text, id, userName, isOwn) {
-      const messageElement = document.createElement("div");
-      if (userName) {
-        if (isOwn) {
-          messageElement.textContent = `You: ${text}`;
+    function updateUserDisplay() {
+      if (userData) {
+        userNameSpan.textContent = userData.username || userData.email || 'User';
+        userRoleSpan.textContent = userData.role || 'user';
+      } else {
+        userNameSpan.textContent = 'User';
+        userRoleSpan.textContent = 'unknown';
+      }
+    }
+
+    // initial call
+    updateUIBasedOnToken();
+
+    // ---------- safe fetch with error & token handling ----------
+    async function authorizedFetch(endpoint, options = {}) {
+      if (!token) {
+        resultsDiv.textContent = '❌ No token — please log in first.';
+        throw new Error('No token');
+      }
+
+      const defaultHeaders = {
+        'Authorization': `Bearer ${token}`,
+        ...(options.body && !(options.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {})
+      };
+
+      // if body is object and not formdata, stringify
+      let body = options.body;
+      if (body && typeof body === 'object' && !(body instanceof FormData) && !(options.body instanceof FormData)) {
+        body = JSON.stringify(body);
+        // ensure content-type is set
+        defaultHeaders['Content-Type'] = 'application/json';
+      }
+
+      const config = {
+        method: options.method || 'GET',
+        headers: { ...defaultHeaders, ...options.headers },
+        body: body
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}${endpoint}`, config);
+
+        // Try to parse JSON, fallback to text
+        let data;
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          data = await res.json();
         } else {
-          messageElement.textContent = `${userName}: ${text}`;
+          data = await res.text();
         }
-        if (isOwn && id) {
-          const deleteBtn = document.createElement("button");
-          deleteBtn.textContent = "Delete";
-          deleteBtn.onclick = () => socket.emit('deleteMessage', id);
-          messageElement.appendChild(deleteBtn);
+
+        // if response not ok, show error
+        if (!res.ok) {
+          const message = typeof data === 'string' ? data : (data.message || data.error || 'request failed');
+          resultsDiv.textContent = `❌ HTTP ${res.status}: ${JSON.stringify(data, null, 2)}`;
+          throw new Error(message);
         }
-      } else {
-        messageElement.textContent = text;
+
+        // success — format nicely
+        resultsDiv.textContent = typeof data === 'string' 
+          ? data 
+          : JSON.stringify(data, null, 2);
+        
+        return data;
+      } catch (err) {
+        // if we already set resultsDiv, don't overwrite if it's a real fetch error
+        if (!err.message.includes('HTTP')) {
+          resultsDiv.textContent = `🚨 Network / parse error: ${err.message}`;
+        }
+        throw err;
       }
-      chat.appendChild(messageElement);
-      chat.scrollTop = chat.scrollHeight;
     }
 
-    function kickUser(username) {
-      socket.emit('kickUser', username);
+    // simple get
+    async function testGet(endpoint) {
+      try {
+        await authorizedFetch(endpoint);
+      } catch (e) {
+        // already displayed
+      }
     }
-  </script>
+
+    // simple post with json body
+    async function testPost(endpoint, body) {
+      try {
+        await authorizedFetch(endpoint, {
+          method: 'POST',
+          body: body
+        });
+      } catch (e) {}
+    }
+
+    // --- event listeners ---
+
+    // SIGN UP
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('signup-username').value;
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password })
+        });
+        const data = await res.json();
+        resultsDiv.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        resultsDiv.textContent = '💥 Signup error: ' + err.message;
+      }
+    });
+
+    // LOGIN - FIXED to handle your response format
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const response = await res.json();
+        
+        // Handle your specific response format
+        if (response.success === true && response.data && response.data.token) {
+          // Extract token from nested data object
+          token = response.data.token;
+          userData = response.data; // Store user data including id, username, email, role
+          
+          // Save to localStorage
+          localStorage.setItem('token', token);
+          localStorage.setItem('userData', JSON.stringify(userData));
+          
+          // Update UI
+          updateUIBasedOnToken();
+          updateUserDisplay();
+          
+          resultsDiv.textContent = '✅ Login successful!\n\n' + JSON.stringify(response, null, 2);
+        } else {
+          // Handle error case
+          resultsDiv.textContent = JSON.stringify(response, null, 2);
+        }
+      } catch (err) {
+        resultsDiv.textContent = '🚨 Login error: ' + err.message;
+      }
+    });
+
+    // --- Attach test buttons (only if they exist) ---
+    document.getElementById('get-books')?.addEventListener('click', () => testGet('/api/books/get'));
+    document.getElementById('add-book')?.addEventListener('click', () => testPost('/api/books/add', { title: 'Test Book', author: 'Test Author' }));
+    document.getElementById('get-products')?.addEventListener('click', () => testGet('/api/products/stats'));
+    document.getElementById('add-product')?.addEventListener('click', () => testGet('/api/products/insert-sample-products'));
+    document.getElementById('get-authors')?.addEventListener('click', () => testGet('/api/authors/stats'));
+    document.getElementById('add-author')?.addEventListener('click', () => testPost('/api/books/author', { name: 'Test Author', bio: 'Test bio', birthDate: '1990-01-01' }));
+    document.getElementById('get-images')?.addEventListener('click', () => testGet('/api/images/get'));
+
+    // Upload image button (intentionally simple — shows hint)
+    document.getElementById('upload-image')?.addEventListener('click', () => {
+      if (!token) {
+        resultsDiv.textContent = '❌ No token, login first.';
+        return;
+      }
+      resultsDiv.textContent = '📎 Simulated image upload.\n\nFor real multipart/form-data you would need a file input. This button shows the idea — server likely expects file. Try using curl or Postman.\n\n(Keeping tester lightweight)';
+    });
+
+    document.getElementById('get-home')?.addEventListener('click', () => testGet('/api/home'));
+    document.getElementById('get-admin')?.addEventListener('click', () => testGet('/api/admin'));
+
+    // LOGOUT
+    document.getElementById('logout').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('userData');
+      token = null;
+      userData = null;
+      updateUIBasedOnToken();
+      resultsDiv.textContent = '👋 Logged out, token cleared.';
+    });
+
+    // small helper to show that token is used
+    window.testGet = testGet;
+    window.testPost = testPost;
+
+    // if token exists on load, show a friendly message
+    if (token) {
+      resultsDiv.textContent = '✅ Token found. Click any endpoint button to test.';
+      // Load user data if exists
+      const savedUser = localStorage.getItem('userData');
+      if (savedUser) {
+        try {
+          userData = JSON.parse(savedUser);
+          updateUserDisplay();
+        } catch (e) {}
+      }
+    }
+  })();
+</script>
+
+<!-- minor fix: ensure hidden class toggles properly -->
+<style>
+  .hidden { display: none !important; }
+</style>
 </body>
-
 </html>
