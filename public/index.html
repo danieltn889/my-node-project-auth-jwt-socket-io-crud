@@ -440,7 +440,52 @@
 
     // --- Attach test buttons (only if they exist) ---
     document.getElementById('get-books')?.addEventListener('click', () => testGet('/api/books/get'));
-    document.getElementById('add-book')?.addEventListener('click', () => testPost('/api/books/add', { title: 'Test Book', author: 'Test Author' }));
+    document.getElementById('add-book')?.addEventListener('click', async () => {
+      try {
+        // First, try to get existing authors
+        const authorsRes = await fetch(`${API_BASE}/api/authors/stats`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const authorsData = await authorsRes.json();
+        
+        let authorId;
+        if (authorsData.success && authorsData.data && authorsData.data.length > 0) {
+          // Use existing author
+          authorId = authorsData.data[0]._id;
+        } else {
+          // Create a new author first
+          const createAuthorRes = await fetch(`${API_BASE}/api/books/author`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ name: 'Test Author', bio: 'Test bio', birthDate: '1990-01-01' })
+          });
+          const createAuthorData = await createAuthorRes.json();
+          if (createAuthorData.success) {
+            authorId = createAuthorData.data._id;
+          } else {
+            resultsDiv.textContent = 'Failed to create author: ' + JSON.stringify(createAuthorData, null, 2);
+            return;
+          }
+        }
+        
+        // Now add the book with the author ID
+        const bookRes = await fetch(`${API_BASE}/api/books/add`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ title: 'Test Book', author: authorId })
+        });
+        const bookData = await bookRes.json();
+        resultsDiv.textContent = JSON.stringify(bookData, null, 2);
+      } catch (err) {
+        resultsDiv.textContent = 'Error: ' + err.message;
+      }
+    });
     document.getElementById('get-products')?.addEventListener('click', () => testGet('/api/products/stats'));
     document.getElementById('add-product')?.addEventListener('click', () => testGet('/api/products/insert-sample-products'));
     document.getElementById('get-authors')?.addEventListener('click', () => testGet('/api/authors/stats'));
