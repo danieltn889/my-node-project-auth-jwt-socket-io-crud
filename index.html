@@ -512,7 +512,7 @@
 <script>
   (function() {
     // --- configuration ---
-    const API_BASE = 'https://my-node-project-auth-jwt-socket-io.vercel.app';
+    const API_BASE = window.location.origin;
     
     // token management
     let token = localStorage.getItem('token') || null;
