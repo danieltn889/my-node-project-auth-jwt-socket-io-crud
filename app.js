@@ -23,20 +23,25 @@ const authorRoutes = require('./routes/author-router');
 // Import database connection
 const connectDB = require('./database/db');
 
-const http=require('http');
-const server=http.createServer(app);
-const socketIO=require('socket.io');
-const io=socketIO(server, {
-  cors: {
-    origin: true, // Allow all origins
-    credentials: true
-  }
-});
+// Socket.IO setup (only for local development)
+let server, io;
+if (require.main === module) {
+  // Only create server and Socket.IO when running locally
+  const http = require('http');
+  server = http.createServer(app);
+  const socketIO = require('socket.io');
+  io = socketIO(server, {
+    cors: {
+      origin: true, // Allow all origins
+      credentials: true
+    }
+  });
+
+  // Socket.io
+  require('./socket')(io);
+}
 
 app.use(express.static('public'));
-
-// Socket.io
-require('./socket')(io);
 
 
 // Connect database
