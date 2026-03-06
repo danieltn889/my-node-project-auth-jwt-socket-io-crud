@@ -4,8 +4,8 @@ const PORT = process.env.PORT || 3000;
 
 const connectDB = async () => {
   try {
-    await mongoose.connect('mongodb://127.0.0.1:27017/bookStore');
-    console.log("MongoDB Connected to bookStore");
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("MongoDB Connected to Atlas");
   } catch (err) {
     console.log("Connection Error:", err);
     process.exit(1); // Exit the process with an error code
